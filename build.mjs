@@ -36,6 +36,9 @@ patch('packages/service/src/models/db.ts',
 patch('packages/service/src/index.ts',
   'headers: req.headers,\n        body: req.body,',
   '// Do not log authorization headers or package bodies.');
+patch('packages/service/src/middleware/auth.ts',
+  'logger.debug({ headers: req.headers, body: req.body });',
+  '// Credentials must never be written to request logs.');
 
 run('corepack', ['yarn', 'install', '--immutable']);
 run('corepack', ['yarn', 'workspace', '@nandu/dashboard', 'build']);

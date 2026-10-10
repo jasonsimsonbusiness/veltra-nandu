@@ -8,7 +8,7 @@ process.env.DASHBOARD_ORIGIN ||= process.env.APP_URL;
 const required = [
   'NANDU_SEQUELIZE_URI', 'NANDU_S3_BUCKET', 'AWS_ENDPOINT_URL',
   'AWS_REGION', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
-  'NANDU_ROOT_USER', 'NANDU_ROOT_PASSWD', 'NANDU_ROOT_EMAIL',
+  'NANDU_ROOT_USER', 'NANDU_ROOT_PASSWD',
   'NANDU_JWT_SECRET', 'API_PUBLIC_URL',
 ];
 const missing = required.filter(name => !process.env[name]);
