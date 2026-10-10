@@ -41,7 +41,7 @@ patch('packages/service/src/middleware/auth.ts',
   '// Credentials must never be written to request logs.');
 patch('packages/service/src/models/db.ts',
   'logger.error("Unable to initialize the database");',
-  'const dbError = error as any;\n    logger.error({ name: dbError?.name, code: dbError?.original?.code ?? dbError?.parent?.code, message: dbError?.message }, "Unable to initialize the database");');
+  'const dbError = error as any;\n    const message = String(dbError?.message || "").replace(/(postgres(?:ql)?:\\/\\/[^:]+:)[^@]+@/gi, "$1[redacted]@");\n    logger.error({ name: dbError?.name, code: dbError?.original?.code ?? dbError?.parent?.code, message }, "Unable to initialize the database");');
 
 run('corepack', ['yarn', 'install', '--immutable']);
 run('corepack', ['yarn', 'workspace', '@nandu/dashboard', 'build']);
