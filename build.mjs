@@ -1,0 +1,42 @@
+import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const root = path.dirname(fileURLToPath(import.meta.url));
+const upstream = path.join(root, 'upstream');
+const revision = '7d5b781ba9d3265d02db82088de133fd3231fae0';
+function run(command, args, cwd = upstream) {
+  const result = spawnSync(command, args, { cwd, stdio: 'inherit' });
+  if (result.error || result.status !== 0) throw new Error(`${command} failed`);
+}
+if (!existsSync(upstream)) {
+  run('git', ['clone', 'https://github.com/taskforcesh/nandu.git', upstream], root);
+  run('git', ['checkout', '--detach', revision]);
+}
+const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: upstream, encoding: 'utf8' });
+if (head.status !== 0 || head.stdout.trim() !== revision) throw new Error('Unexpected upstream revision');
+
+function patch(file, before, after) {
+  const target = path.join(upstream, file);
+  const source = readFileSync(target, 'utf8');
+  if (source.includes(after)) return;
+  if (!source.includes(before)) throw new Error(`Patch no longer applies: ${file}`);
+  writeFileSync(target, source.replace(before, after));
+}
+patch('packages/service/src/services/storage/s3.storage.ts',
+  'const client = new S3({}) || new S3Client({});',
+  'const client = new S3Client({ region: process.env.AWS_REGION, endpoint: process.env.AWS_ENDPOINT_URL });');
+patch('packages/service/src/index.ts',
+  'app.set("trust proxy", true);',
+  'app.set("trust proxy", 1);');
+patch('packages/service/src/models/db.ts',
+  'logger.error(error, "Unable to connect to the database");',
+  'logger.error("Unable to initialize the database");\n    throw new Error("Database initialization failed");');
+patch('packages/service/src/index.ts',
+  'headers: req.headers,\n        body: req.body,',
+  '// Do not log authorization headers or package bodies.');
+
+run('corepack', ['yarn', 'install', '--immutable']);
+run('corepack', ['yarn', 'workspace', '@nandu/dashboard', 'build']);
+run('corepack', ['yarn', 'workspace', '@nandu/service', 'build']);
