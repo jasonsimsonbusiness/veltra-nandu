@@ -39,6 +39,9 @@ patch('packages/service/src/index.ts',
 patch('packages/service/src/middleware/auth.ts',
   'logger.debug({ headers: req.headers, body: req.body });',
   '// Credentials must never be written to request logs.');
+patch('packages/service/src/models/db.ts',
+  'logger.error("Unable to initialize the database");',
+  'const dbError = error as any;\n    logger.error({ name: dbError?.name, code: dbError?.original?.code ?? dbError?.parent?.code, message: dbError?.message }, "Unable to initialize the database");');
 
 run('corepack', ['yarn', 'install', '--immutable']);
 run('corepack', ['yarn', 'workspace', '@nandu/dashboard', 'build']);
