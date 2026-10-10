@@ -1,13 +1,18 @@
 # Veltra registry on Laravel Cloud
 
-Status: deployment candidate; not deployed or end-to-end verified.
+Status: local dashboard and server builds passed; missing-configuration startup
+check passed. Cloud application created; paid resources await approval. Not yet
+deployed or end-to-end verified.
+
+Deployment repository: https://github.com/jasonsimsonbusiness/veltra-nandu
+Cloud application: https://cloud.laravel.com/jason-simson/veltra-nandu/production
 
 This standalone application builds Nandu from upstream commit
 `7d5b781ba9d3265d02db82088de133fd3231fae0`. It does not change Veltra's
 website or package-manager registry settings.
 
-In Laravel Cloud, connect the Git repository containing this directory and select
-`deployments/nandu` as the application root. Select Node.js 22, build command
+In Laravel Cloud, connect the standalone deployment repository with `/` as its
+application root (or `deployments/nandu` when using the Veltra monorepo). Select Node.js 22, build command
 `npm run build`, start command `npm start`, port 3000, and health-check path
 `/-/ping`. The build needs Git and Corepack (Yarn 4.9.1 from upstream).
 
