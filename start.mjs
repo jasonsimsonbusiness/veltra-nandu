@@ -17,8 +17,13 @@ if (!/^postgres(?:ql)?:\/\//.test(process.env.NANDU_SEQUELIZE_URI)) {
   throw new Error('Production registry requires PostgreSQL');
 }
 const databaseUrl = new URL(process.env.NANDU_SEQUELIZE_URI);
-// Cloud's injected URL omits TLS options; Neon requires an encrypted connection.
+// Laravel's alias presents a Neon certificate. Use the verified canonical endpoint.
+if (databaseUrl.hostname === 'ep-muddy-butterfly-anu3lslz.c-6.aws-us-east-1.pg.laravel.cloud') {
+  databaseUrl.hostname = 'ep-muddy-butterfly-anu3lslz.c-6.us-east-1.aws.neon.tech';
+}
+// Keep certificate verification enabled.
 if (!databaseUrl.searchParams.has('sslmode')) databaseUrl.searchParams.set('sslmode', 'verify-full');
+databaseUrl.searchParams.set('connect_timeout', '10');
 process.env.NANDU_SEQUELIZE_URI = databaseUrl.href;
 if (process.env.NANDU_ROOT_PASSWD.length < 20 || process.env.NANDU_JWT_SECRET.length < 32) {
   throw new Error('Use a root password of at least 20 characters and a JWT secret of at least 32 characters');
