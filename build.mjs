@@ -67,6 +67,11 @@ patch('packages/service/src/index.ts',
   });
   const versionString = \`Nandu NPM Registry v\${pkg.version}\`;`);
 
+// npm sends keyword arrays; the pinned Nandu schema stores keywords as text.
+patch('packages/service/src/models/version.ts',
+  '          ...version,\n          packageId,',
+  '          ...version,\n          keywords: Array.isArray((version as any).keywords) ? (version as any).keywords.join(" ") : (version as any).keywords,\n          packageId,');
+
 run('corepack', ['yarn', 'install', '--immutable']);
 run('corepack', ['yarn', 'workspace', '@nandu/dashboard', 'build']);
 run('corepack', ['yarn', 'workspace', '@nandu/service', 'build']);
