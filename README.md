@@ -42,8 +42,7 @@ corresponding source, including these modifications, for a deployed service.
 Before publishing Veltra: verify database health, authenticated publish and clean
 install of a disposable package, storage after a restart, and actual package-size
 limits. Nandu requires authentication for registry access; do not advertise
-anonymous installation until it has been implemented and tested. The current
-server root is a version response, not the administration dashboard.
+anonymous installation until it has been implemented and tested. The server root serves the Veltra registry UI.
 
 References:
 - https://laravel.com/cloud/docs/deploy-guides/nodejs
@@ -60,3 +59,24 @@ This registers the organization/team if needed and publishes a uniquely versione
 registry. It then installs into a fresh directory/cache and verifies its export.
 Use a project-local `.npmrc` with `@veltrajs:registry` pointing at the registry and
 an authenticated token; never commit credentials or put them in website code.
+
+
+## Registry interface
+
+The same origin serves a responsive registry home, authenticated package search,
+package details with version/dependency tabs, sign-in, access-token management,
+and publishing documentation. The UI uses live Nandu APIs; it does not expose
+private package data to anonymous visitors. Catalog results enforce the same
+team permissions as package metadata. Sessions are scoped to the browser tab.
+
+`ui-server.cjs` mounts static browser routes before Nandu's registry routes.
+Browser routes require an HTML Accept header so names such as `docs` still work
+as npm package metadata routes. Authenticated responses are marked private and
+not cacheable. The HTML uses a restrictive Content Security Policy and package
+metadata is escaped before display.
+
+Run the routing/authorization integration checks after building:
+
+```sh
+node --test ui.test.cjs
+```

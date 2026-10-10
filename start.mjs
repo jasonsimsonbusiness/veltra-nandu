@@ -1,4 +1,7 @@
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+process.env.NANDU_UI_SERVER = fileURLToPath(new URL('./ui-server.cjs', import.meta.url));
 
 process.env.NANDU_SEQUELIZE_URI ||= process.env.DATABASE_URL;
 process.env.NANDU_S3_BUCKET ||= process.env.AWS_BUCKET;

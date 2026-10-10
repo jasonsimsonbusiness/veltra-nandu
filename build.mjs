@@ -57,6 +57,16 @@ patch('packages/service/src/models/db.ts',
       }
     }`);
 
+patch('packages/service/src/index.ts',
+  '  const versionString = `Nandu NPM Registry v${pkg.version}`;',
+  `  require(process.env.NANDU_UI_SERVER!)(app, {
+    express, authToken,
+    Package: require("./models/package").Package,
+    Team: require("./models/team").Team,
+    Op: require("sequelize").Op,
+  });
+  const versionString = \`Nandu NPM Registry v\${pkg.version}\`;`);
+
 run('corepack', ['yarn', 'install', '--immutable']);
 run('corepack', ['yarn', 'workspace', '@nandu/dashboard', 'build']);
 run('corepack', ['yarn', 'workspace', '@nandu/service', 'build']);
