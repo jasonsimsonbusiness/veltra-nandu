@@ -1,8 +1,16 @@
 # Veltra registry on Laravel Cloud
 
-Status: local dashboard and server builds passed; missing-configuration startup
-check passed. Cloud application created; paid resources await approval. Not yet
-deployed or end-to-end verified.
+Status: deployed successfully on Laravel Cloud. PostgreSQL and object-storage
+health checks pass. Authenticated npm publish and a fresh install of a 5 MiB
+package passed. The `veltrajs` organization and `maintainers` team are registered.
+
+Registry: https://veltra-nandu-production-qsfhr9.laravel.cloud
+
+The Laravel database alias presented a certificate for Neon's canonical hostname.
+The launcher maps this deployment's alias to its verified Neon endpoint, keeps
+full TLS verification, and sets a 10-second connection timeout. Startup retries
+transient connection failures up to five times; certificate and authentication
+errors fail immediately.
 
 Deployment repository: https://github.com/jasonsimsonbusiness/veltra-nandu
 Cloud application: https://cloud.laravel.com/jason-simson/veltra-nandu/production
@@ -40,3 +48,15 @@ server root is a version response, not the administration dashboard.
 References:
 - https://laravel.com/cloud/docs/deploy-guides/nodejs
 - https://github.com/taskforcesh/nandu
+
+Run the end-to-end verification with administrator credentials loaded privately:
+
+```sh
+node --env-file=.env smoke.mjs https://veltra-nandu-production-qsfhr9.laravel.cloud
+```
+
+This registers the organization/team if needed and publishes a uniquely versioned
+`@veltrajs/registry-smoke` fixture with a 5 MiB payload. The fixture remains in the
+registry. It then installs into a fresh directory/cache and verifies its export.
+Use a project-local `.npmrc` with `@veltrajs:registry` pointing at the registry and
+an authenticated token; never commit credentials or put them in website code.
