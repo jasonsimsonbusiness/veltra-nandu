@@ -6,3 +6,5 @@
 
 /* Frame the original supplied lockup without altering the image. */
 .registry-logo{display:block;position:relative;width:142px;aspect-ratio:1488/410;overflow:hidden;flex-shrink:0;mix-blend-mode:multiply}.registry-logo img{position:absolute;display:block;width:137.635%;height:auto;max-width:none;left:-19.49%;top:-36.585%;object-fit:initial}.footer-brand .registry-logo{width:96px}.footer-brand .registry-logo img{width:137.635%;height:auto;object-fit:initial}@media(max-width:700px){.registry-logo{width:113px}.footer-brand .registry-logo{width:88px}}
+
+.account{display:flex;align-items:center;gap:18px}.signup-link{border:1px solid var(--line);padding:10px 14px;border-radius:5px;font-size:12px}.auth-card .hint a{color:var(--purple);font-weight:600}.auth-card .field-hint{font-size:11px;line-height:1.6;margin:7px 0 0}.password-field{position:relative}.password-field input{padding-right:66px}.password-field button{position:absolute;right:10px;top:0;bottom:0;border:0;background:transparent;color:var(--purple);font-size:12px;padding:0 5px}@media(max-width:700px){.signup-link{display:none}.account{gap:5px}}
