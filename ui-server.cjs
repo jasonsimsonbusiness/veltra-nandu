@@ -1,5 +1,5 @@
 const path = require('node:path');
-module.exports = function mountRegistryUI(app, { express, authToken, Package, Team, Op, User, RateLimit }) {
+module.exports = function mountRegistryUI(app, { express, authToken, Package, Team, Op, User, RateLimit, downloadPackage, getStorage }) {
   const directory = path.join(__dirname, 'ui');
   const privateResponse = (req, res, next) => { res.set('Cache-Control', 'private, no-store'); next(); };
   app.use((req, res, next) => { if (req.headers.authorization || req.path === '/api/login') res.set('Cache-Control', 'private, no-store'); next(); });
@@ -21,7 +21,7 @@ module.exports = function mountRegistryUI(app, { express, authToken, Package, Te
       return res.status(500).json({ error: 'We couldn’t create your account. Please try again.' });
     }
   });
-  app.get('/-/ui/packages', authToken(), async (req, res) => {
+  app.get('/-/ui/packages', async (req, res) => {
     try {
       const query = String(req.query.q || '').slice(0, 100);
       const offset = Math.max(0, Math.min(100000, Number.parseInt(req.query.offset, 10) || 0));
@@ -33,12 +33,11 @@ module.exports = function mountRegistryUI(app, { express, authToken, Package, Te
       const items = [];
       for (const row of rows) {
         const id = row.getDataValue('_id');
-        if (res.locals.user.type !== 'root' && !await Team.checkPermissions(res.locals.user._id, id, ['read-only', 'read-write'])) continue;
         const metadata = await Package.getPackage(id);
         const versions = Object.keys(metadata.versions);
         const version = metadata['dist-tags'].latest || versions.at(-1);
         const latest = metadata.versions[version];
-        items.push({ name: id, version, description: latest?.description || '', license: latest?.license || '', modified: metadata.time.modified, access: metadata.access });
+        items.push({ name: id, version, description: latest?.description || '', license: latest?.license || '', modified: metadata.time.modified, access: "public" });
       }
       res.json({ items, next: rows.length === 30 ? offset + 30 : null });
     } catch { res.status(500).json({ error: 'Unable to load packages. Please try again.' }); }
@@ -51,4 +50,32 @@ module.exports = function mountRegistryUI(app, { express, authToken, Package, Te
     res.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
     res.sendFile(path.join(directory, 'index.html'));
   });
+  // Only package reads bypass authentication. Nandu still authenticates every write
+  // and all token, organization, team, hook, and account-management routes.
+  const metadata = async (req, res, next) => {
+    const id = req.params.scope ? `@${req.params.scope}/${req.params.name}` : req.params.packageId;
+    if (['config', 'api'].includes(id)) return next();
+    try {
+      const pkg = await Package.getPackage(id);
+      if (!pkg) return res.status(404).json({ error: 'Package not found' });
+      res.json({ ...pkg, access: 'public' });
+    } catch { res.status(500).json({ error: 'Unable to load package' }); }
+  };
+  app.get('/@:scope/:name', metadata);
+  app.get('/:packageId', metadata);
+  const tarball = async (req, res) => {
+    const { scope, name, packageId, tarScope, file } = req.params;
+    if (!/^[a-z0-9][a-z0-9._-]*\.tgz$/i.test(file) || (scope && scope !== tarScope)) return res.sendStatus(404);
+    const id = scope ? `@${scope}/${name}` : packageId;
+    try {
+      const pkg = await Package.getPackage(id);
+      const exists = pkg && Object.values(pkg.versions).some(version => {
+        try { return new URL(version.dist.tarball).pathname.split('/').pop() === file; } catch { return false; }
+      });
+      if (!exists) return res.sendStatus(404);
+      await downloadPackage(res, getStorage(), scope ? `@${scope}/${file}` : file);
+    } catch { if (!res.headersSent) res.status(500).json({ error: 'Unable to download package' }); }
+  };
+  app.get('/:packageId/-/:file', tarball);
+  app.get('/@:scope/:name/-/@:tarScope/:file', tarball);
 };

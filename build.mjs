@@ -62,6 +62,8 @@ patch('packages/service/src/index.ts',
   `  require(process.env.NANDU_UI_SERVER!)(app, {
     express, authToken, RateLimit,
     User: require("./models/user").User,
+    downloadPackage: require("./services/storage").downloadPackage,
+    getStorage: require("./services/storage").getStorage,
     Package: require("./models/package").Package,
     Team: require("./models/team").Team,
     Op: require("sequelize").Op,
