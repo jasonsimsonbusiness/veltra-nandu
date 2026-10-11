@@ -72,6 +72,10 @@ patch('packages/service/src/models/version.ts',
   '          ...version,\n          packageId,',
   '          ...version,\n          keywords: Array.isArray((version as any).keywords) ? (version as any).keywords.join(" ") : (version as any).keywords,\n          packageId,');
 
+patch('packages/service/src/routes/packages.ts',
+  '        let canAccess = false;',
+  '        let canAccess = res.locals.user.type === "root";');
+
 run('corepack', ['yarn', 'install', '--immutable']);
 run('corepack', ['yarn', 'workspace', '@nandu/dashboard', 'build']);
 run('corepack', ['yarn', 'workspace', '@nandu/service', 'build']);
