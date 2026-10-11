@@ -1,10 +1,16 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const upstream = path.join(root, 'upstream');
+// Serve pinned browser dependencies locally under the registry's strict CSP.
+mkdirSync(path.join(root, 'ui/vendor'), { recursive: true });
+for (const [source, target] of [
+  ['marked/lib/marked.umd.js', 'marked.js'],
+  ['dompurify/dist/purify.min.js', 'purify.js'],
+]) copyFileSync(path.join(root, 'node_modules', source), path.join(root, 'ui/vendor', target));
 const revision = '7d5b781ba9d3265d02db82088de133fd3231fae0';
 function run(command, args, cwd = upstream) {
   const result = spawnSync(command, args, { cwd, stdio: 'inherit' });

@@ -2,3 +2,7 @@ upstream/
 .env
 .env.*
 !.env.example
+artifacts/
+
+node_modules/
+ui/vendor/
